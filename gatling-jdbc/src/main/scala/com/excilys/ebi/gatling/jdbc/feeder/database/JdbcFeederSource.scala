@@ -16,9 +16,10 @@
 package com.excilys.ebi.gatling.jdbc.feeder.database
 
 import java.sql.DriverManager
-import java.sql.ResultSet.{ TYPE_FORWARD_ONLY, CONCUR_READ_ONLY }
+import java.sql.ResultSet.{ CONCUR_READ_ONLY, TYPE_FORWARD_ONLY }
 
 import com.excilys.ebi.gatling.core.util.IOHelper.use
+import com.excilys.ebi.gatling.jdbc.util.RowIterator.ResultSet2RowIterator
 
 object JdbcFeederSource {
 
@@ -31,16 +32,8 @@ object JdbcFeederSource {
 
 			val columnNames = for (i <- 1 to rsmd.getColumnCount) yield rsmd.getColumnName(i)
 
-			new Iterator[Map[String, String]] {
-
-				def hasNext = !resultSet.isLast
-
-				def next = {
-					resultSet.next
-					val vals = for (i <- 1 to rsmd.getColumnCount) yield resultSet.getString(i)
-					(columnNames zip vals).toMap[String, String]
-				}
-			}.toArray
+			resultSet.map(contents => (columnNames.zip(contents.map(_.toString))).toMap).toArray
 		}
 	}
+
 }

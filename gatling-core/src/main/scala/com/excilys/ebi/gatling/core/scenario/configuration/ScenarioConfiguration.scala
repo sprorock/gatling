@@ -15,7 +15,7 @@
  */
 package com.excilys.ebi.gatling.core.scenario.configuration
 
-import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.duration.Duration
 
 import com.excilys.ebi.gatling.core.config.ProtocolConfigurationRegistry
 
@@ -30,5 +30,5 @@ import com.excilys.ebi.gatling.core.config.ProtocolConfigurationRegistry
 case class ScenarioConfiguration(
 	users: Int,
 	ramp: Option[Duration],
-	delay: Option[FiniteDuration],
+	delay: Option[Duration],
 	protocolRegistry: ProtocolConfigurationRegistry)

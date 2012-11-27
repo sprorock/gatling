@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.excilys.ebi.gatling.core
+package com.excilys.ebi.gatling.jdbc.util
 
-import com.excilys.ebi.gatling.core.session.Session
+import org.apache.tomcat.jdbc.pool.DataSource
 
-import scalaz.Scalaz.ToValidationV
-import scalaz.Validation
+object ConnectionFactory {
 
-package object session {
+	private[jdbc] var dataSource : DataSource = _
 
-	val NOOP_EXPRESSION = (s: Session) => "".success
+	private[jdbc] def setDataSource(ds: DataSource) { dataSource = ds }
 
-	type Expression[T] = Session => Validation[String, T]
-	def undefinedSeqIndexMessage(name: String, index: Int) = "Seq named '" + name + "' is undefined for index " + index
-	def undefinedSessionAttributeMessage(name: String) = "No attribute named '" + name + "' is defined"
+	private[jdbc] def getConnection =
+		if(dataSource != null)
+			dataSource.getConnection
+		else
+			throw new IllegalStateException("DataSource is not configured.")
+
+	private[jdbc] def close = if (dataSource != null ) dataSource.close
 }

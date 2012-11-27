@@ -17,8 +17,6 @@ package com.excilys.ebi.gatling.core.config
 
 import java.util.{ HashMap => JHashMap, Map => JMap }
 
-import scala.collection.JavaConversions.seqAsJavaList
-
 import com.excilys.ebi.gatling.core.ConfigurationConstants._
 
 class GatlingPropertiesBuilder {

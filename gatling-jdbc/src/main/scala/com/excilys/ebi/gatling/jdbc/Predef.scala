@@ -15,8 +15,22 @@
  */
 package com.excilys.ebi.gatling.jdbc
 
+import com.excilys.ebi.gatling.core.session.Expression
+import com.excilys.ebi.gatling.core.structure.ChainBuilder
+import com.excilys.ebi.gatling.jdbc.config.JdbcProtocolConfigurationBuilder
 import com.excilys.ebi.gatling.jdbc.feeder.database.JdbcFeederSource
+import com.excilys.ebi.gatling.jdbc.statement.builder.{ AbstractJdbcStatementBuilder, JdbcStatementBaseBuilder }
+import com.excilys.ebi.gatling.jdbc.statement.structure.{ BatchUpdates, Transactions }
 
 object Predef {
+
+	implicit def jdbcProtocolConfigurationBuilder2JdbcProtocolConfiguration(builder: JdbcProtocolConfigurationBuilder) = builder.build
+	implicit def statementBuilder2ActionBuilder(statementBuilder: AbstractJdbcStatementBuilder[_]) = statementBuilder.toActionBuilder
+
+	def sql(statementName: Expression[String]) = JdbcStatementBaseBuilder.sql(statementName)
+	def transaction(chain: ChainBuilder) = Transactions.transaction(chain)
+	def batch(chain: ChainBuilder) = BatchUpdates.batch(chain)
+	def jdbcConfig = JdbcProtocolConfigurationBuilder.jdbcConfig
+
 	def jdbcFeeder(url: String, username: String, password: String, sql: String) = JdbcFeederSource(url, username, password, sql)
 }

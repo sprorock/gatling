@@ -18,7 +18,6 @@ package com.excilys.ebi.gatling.core.structure
 import java.util.UUID
 
 import com.excilys.ebi.gatling.core.action.builder.{ SimpleActionBuilder, TryMaxActionBuilder }
-import com.excilys.ebi.gatling.core.session.Session
 import com.excilys.ebi.gatling.core.structure.ChainBuilder.emptyChain
 
 trait Errors[B] extends Execs[B] {
