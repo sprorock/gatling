@@ -38,10 +38,13 @@ class JdbcStatementAction(statementName: Expression[String], statementBuilder: A
 	 */
 	def execute(session: Session) {
 
-		val resolvedStatementName = statementName(session)
-		resolvedStatementName match {
-			case Success(statementName) =>
-				val jdbcActor = context.actorOf(Props(JdbcHandlerActor(statementName,statementBuilder,isolationLevel,session,next)))
+		val execution = for {
+			statementName <- statementName(session)
+			paramsList <- statementBuilder.resolveParams(session)
+		} yield (statementName, paramsList)
+		execution match {
+			case Success((statementName,paramsList)) =>
+				val jdbcActor = context.actorOf(Props(JdbcHandlerActor(statementName,statementBuilder,paramsList,isolationLevel,session,next)))
 				jdbcActor ! ExecuteStatement
 
 			case Failure(message) =>

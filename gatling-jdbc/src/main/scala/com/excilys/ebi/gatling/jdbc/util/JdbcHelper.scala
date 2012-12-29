@@ -50,8 +50,8 @@ object JdbcHelper {
 		if (!session.isInTransaction && connection != null)
 			connection.close
 
-	def getStatement(session: Session,connection: Connection, builder: AbstractJdbcStatementBuilder[_]) = {
-		if (session.isInBatchUpdate) {
+	def getStatement(session: Session,connection: Connection, builder: AbstractJdbcStatementBuilder[_],paramsList: List[Any]) = {
+		val statement = if (session.isInBatchUpdate) {
 			if (session.isStatementInCache) {
 				session.getStatementFromSession
 			} else {
@@ -62,6 +62,10 @@ object JdbcHelper {
 		} else {
 			builder.build(connection)
 		}
+		// Bind parameters
+		val indexes = 1 to paramsList.length
+		indexes.zip(paramsList.reverse).map{case (index,param) => statement.setObject(index,param)}
+		statement
 	}
 
 	def closeStatement(session: Session,statement: PreparedStatement) =

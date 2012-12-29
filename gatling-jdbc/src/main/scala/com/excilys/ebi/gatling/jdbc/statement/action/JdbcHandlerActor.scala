@@ -39,11 +39,11 @@ object ExecuteStatement
 
 object JdbcHandlerActor {
 
-	def apply(statementName: String,builder: AbstractJdbcStatementBuilder[_],isolationLevel: Option[Int],session: Session,next: ActorRef) =
-		new JdbcHandlerActor(statementName,builder,isolationLevel,session,next)
+	def apply(statementName: String,builder: AbstractJdbcStatementBuilder[_],paramsList: List[Any], isolationLevel: Option[Int],session: Session,next: ActorRef) =
+		new JdbcHandlerActor(statementName,builder,paramsList,isolationLevel,session,next)
 }
 
-class JdbcHandlerActor(statementName: String,builder: AbstractJdbcStatementBuilder[_],isolationLevel: Option[Int],session: Session,next: ActorRef) extends BaseActor {
+class JdbcHandlerActor(statementName: String,builder: AbstractJdbcStatementBuilder[_],paramsList: List[Any],isolationLevel: Option[Int],session: Session,next: ActorRef) extends BaseActor {
 
 	var executionStartDate = nowMillis
 	var statementExecutionStartDate = 0L
@@ -58,6 +58,7 @@ class JdbcHandlerActor(statementName: String,builder: AbstractJdbcStatementBuild
 	}
 
 	private def execute = {
+
 		var statement: PreparedStatement = null
 		var connection: Connection = null
 		try {
@@ -66,18 +67,15 @@ class JdbcHandlerActor(statementName: String,builder: AbstractJdbcStatementBuild
 			if(isolationLevel.isDefined) connection.setTransactionIsolation(isolationLevel.get)
 			resetTimeout
 			// Execute statement
-			val (bindingOk,statement) = builder.bindParams(session,getStatement(session,connection,builder))
-			// If parameter binding is OK
-			if (bindingOk) {
-				statementExecutionStartDate = computeTimeMillisFromNanos(nanoTime)
-				val hasResultSet = statement.execute
-				statementExecutionEndDate = computeTimeMillisFromNanos(nanoTime)
-				resetTimeout
-				// Process result set
-				if (hasResultSet) processResultSet(statement)
-				executionEndDate = computeTimeMillisFromNanos(nanoTime)
-				logStatement(OK)
-			}
+			statement = getStatement(session,connection,builder,paramsList)
+			statementExecutionStartDate = computeTimeMillisFromNanos(nanoTime)
+			val hasResultSet = statement.execute
+			statementExecutionEndDate = computeTimeMillisFromNanos(nanoTime)
+			resetTimeout
+			// Process result set
+			if (hasResultSet) processResultSet(statement)
+			executionEndDate = computeTimeMillisFromNanos(nanoTime)
+			logStatement(OK)
 			next ! session
 			context.stop(self)
 

@@ -15,7 +15,7 @@
  */
 package com.excilys.ebi.gatling.jdbc.statement.builder
 
-import java.sql.{ Connection, PreparedStatement }
+import java.sql.Connection
 
 import com.excilys.ebi.gatling.core.session.{ Expression, Session }
 import com.excilys.ebi.gatling.jdbc.statement.{ CALL, QUERY, StatementType }
@@ -23,6 +23,7 @@ import com.excilys.ebi.gatling.jdbc.statement.action.JdbcStatementActionBuilder
 
 import grizzled.slf4j.Logging
 import scalaz._
+import Scalaz._
 
 case class JdbcAttributes(
 	statementName: Expression[String],
@@ -54,17 +55,9 @@ abstract class AbstractJdbcStatementBuilder[B <: AbstractJdbcStatementBuilder[B]
 		case QUERY => connection.prepareStatement(jdbcAttributes.statement)
 	}
 
-	private[jdbc] def bindParams(session: Session,statement: PreparedStatement): BindingResult = {
-		def bindParameter(index: Int,parameter: Expression[Any]) = {
-			parameter(session) match {
-				case Success(result) => statement.setObject(index,result);true
-				case Failure(message) => error(message);false
-			}
-		}
-		val indexes = 1 to jdbcAttributes.params.length
-		val indexedParams = indexes zip jdbcAttributes.params.reverse
-		val bindingOk = indexedParams.foldLeft(true)((result,param2) => bindParameter(param2._1,param2._2) && result)
-		(bindingOk,statement)
+	private[jdbc] def resolveParams(session: Session) = {
+		val resolvedParams = jdbcAttributes.params.map(_(session))
+		resolvedParams.sequence[({ type l[a] = Validation[String, a] })#l, Any]
 	}
 }
 
