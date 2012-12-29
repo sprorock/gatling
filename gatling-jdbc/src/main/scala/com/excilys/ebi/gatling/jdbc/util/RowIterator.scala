@@ -28,10 +28,7 @@ class RowIterator(resultSet: ResultSet) extends Iterator[Array[AnyRef]] {
 
 	val columnCount = resultSet.getMetaData.getColumnCount
 
-	def hasNext = !resultSet.isLast
+	def hasNext = resultSet.next
 
-	def next = {
-		resultSet.next
-		(for (i <- 1 to columnCount) yield (resultSet.getObject(i))).toArray
-	}
+	def next = (for (i <- 1 to columnCount) yield (resultSet.getObject(i))).toArray
 }
