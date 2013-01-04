@@ -33,6 +33,7 @@ import com.excilys.ebi.gatling.jdbc.util.JdbcHelper._
 
 import akka.actor.{ ActorRef, ReceiveTimeout }
 import akka.util.duration.intToDurationInt
+import com.excilys.ebi.gatling.jdbc.util.{JdbcHelper, ConnectionFactory}
 
 // Message to start execution of query by the actor
 object ExecuteStatement
@@ -63,11 +64,11 @@ class JdbcHandlerActor(statementName: String,builder: AbstractJdbcStatementBuild
 		var connection: Connection = null
 		try {
 			// Fetch connection
-			connection = getConnection(session)
+			connection = ConnectionFactory.getConnection
 			if(isolationLevel.isDefined) connection.setTransactionIsolation(isolationLevel.get)
 			resetTimeout
 			// Execute statement
-			statement = getStatement(session,connection,builder,paramsList)
+			statement = JdbcHelper.bindParams(builder.build(connection),paramsList)
 			statementExecutionStartDate = computeTimeMillisFromNanos(nanoTime)
 			val hasResultSet = statement.execute
 			statementExecutionEndDate = computeTimeMillisFromNanos(nanoTime)
@@ -84,8 +85,8 @@ class JdbcHandlerActor(statementName: String,builder: AbstractJdbcStatementBuild
 				logStatement(KO,Some(sqle.getMessage))
 				executeNext(session.setFailed)
 		} finally {
-			closeStatement(session,statement)
-			closeConnection(session,connection)
+			statement.close
+			connection.close
 		}
 	}
 

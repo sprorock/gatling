@@ -24,51 +24,11 @@ import com.excilys.ebi.gatling.jdbc.util.JdbcSession.session2JdbcSession
 
 object JdbcHelper {
 
-	def withTransaction(session: Session)(block : ChainBuilder): Session =
-		try {
-			session.beginTransaction
-			session.getConnectionFromSession.setAutoCommit(false)
-			// TODO : execute chain, how ?
-			session.getConnectionFromSession.commit
-			session
-		} catch {
-			case sqle: SQLException =>
-				session.getConnectionFromSession.rollback
-				session
-		} finally {
-			session.getConnectionFromSession.close
-			session.endTransaction
-		}
-
-	def getConnection(session : Session) =
-		if (session.isInTransaction)
-			session.getConnectionFromSession
-		else
-			ConnectionFactory.getConnection
-
-	def closeConnection(session: Session,connection: Connection) =
-		if (!session.isInTransaction && connection != null)
-			connection.close
-
-	def getStatement(session: Session,connection: Connection, builder: AbstractJdbcStatementBuilder[_],paramsList: List[Any]) = {
-		val statement = if (session.isInBatchUpdate) {
-			if (session.isStatementInCache) {
-				session.getStatementFromSession
-			} else {
-				val statement = builder.build(connection)
-				session.cacheStatement(statement)
-				statement
-			}
-		} else {
-			builder.build(connection)
-		}
+	def bindParams(statement: PreparedStatement,params : List[Any]) = {
 		// Bind parameters
-		val indexes = 1 to paramsList.length
-		indexes.zip(paramsList.reverse).map{case (index,param) => statement.setObject(index,param)}
+		val indexes = 1 to params.length
+		indexes.zip(params.reverse).map{case (index,param) => statement.setObject(index,param)}
 		statement
 	}
 
-	def closeStatement(session: Session,statement: PreparedStatement) =
-		if (!session.isInBatchUpdate && statement != null)
-			statement.close
 }
