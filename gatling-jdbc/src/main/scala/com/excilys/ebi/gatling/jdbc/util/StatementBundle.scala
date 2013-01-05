@@ -15,20 +15,20 @@
  */
 package com.excilys.ebi.gatling.jdbc.util
 
-import java.sql.{ Connection, PreparedStatement, SQLException }
+import java.sql.Connection
 
-import com.excilys.ebi.gatling.core.session.Session
-import com.excilys.ebi.gatling.core.structure.ChainBuilder
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
-import com.excilys.ebi.gatling.jdbc.util.JdbcSession.session2JdbcSession
 
-object JdbcHelper {
+object StatementBundle {
+	def apply(builder : AbstractJdbcStatementBuilder[_],params: List[Any]) = new StatementBundle(builder,params)
+}
 
-	def bindParams(statement: PreparedStatement,params : List[Any]) = {
-		// Bind parameters
+class StatementBundle(builder: AbstractJdbcStatementBuilder[_],params: List[Any]) {
+
+	def buildStatement(connection: Connection) = {
+		val statement = builder.build(connection)
 		val indexes = 1 to params.length
 		indexes.zip(params.reverse).map{case (index,param) => statement.setObject(index,param)}
 		statement
 	}
-
 }

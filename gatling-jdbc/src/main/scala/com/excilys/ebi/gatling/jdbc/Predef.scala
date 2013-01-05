@@ -25,8 +25,8 @@ object Predef {
 	implicit def jdbcProtocolConfigurationBuilder2JdbcProtocolConfiguration(builder: JdbcProtocolConfigurationBuilder) = builder.build
 	implicit def statementBuilder2ActionBuilder(statementBuilder: AbstractJdbcStatementBuilder[_]) = statementBuilder.toActionBuilder
 
-	def sql(statementName: Expression[String]) = JdbcStatementBaseBuilder.sql(statementName)
 	def jdbcConfig = JdbcProtocolConfigurationBuilder.jdbcConfig
+	def sql(statementName: Expression[String]) = JdbcStatementBaseBuilder.sql(statementName)
 
 	def jdbcFeeder(url: String, username: String, password: String, sql: String) = JdbcFeederSource(url, username, password, sql)
 }

@@ -18,6 +18,7 @@ package com.excilys.ebi.gatling.jdbc.statement.action
 import com.excilys.ebi.gatling.core.action.{Action, Bypass}
 import com.excilys.ebi.gatling.core.session.{Expression, Session}
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
+import com.excilys.ebi.gatling.jdbc.util.StatementBundle
 
 import akka.actor.{Props, ActorRef}
 import scalaz._
@@ -44,7 +45,8 @@ class JdbcStatementAction(statementName: Expression[String], statementBuilder: A
 		} yield (statementName, paramsList)
 		execution match {
 			case Success((statementName,paramsList)) =>
-				val jdbcActor = context.actorOf(Props(JdbcHandlerActor(statementName,statementBuilder,paramsList,isolationLevel,session,next)))
+				val bundle = StatementBundle(statementBuilder,paramsList)
+				val jdbcActor = context.actorOf(Props(JdbcStatementActor(statementName,bundle,isolationLevel,session,next)))
 				jdbcActor ! ExecuteStatement
 
 			case Failure(message) =>
