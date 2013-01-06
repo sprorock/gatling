@@ -46,7 +46,9 @@ abstract class AbstractJdbcStatementBuilder[B <: AbstractJdbcStatementBuilder[B]
 
 	def serializable = newInstance(jdbcAttributes.copy(isolationLevel = Some(Connection.TRANSACTION_SERIALIZABLE)))
 
-	private[gatling] def toActionBuilder = JdbcStatementActionBuilder(jdbcAttributes.statementName, this, jdbcAttributes.isolationLevel)
+	private[gatling] def toActionBuilder = JdbcStatementActionBuilder(this, jdbcAttributes.isolationLevel)
+
+	private[jdbc] def statementName = jdbcAttributes.statementName
 
 	private[jdbc] def build(connection: Connection) = createStatement(connection)
 
