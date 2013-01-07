@@ -20,7 +20,7 @@ import com.excilys.ebi.gatling.jdbc.statement.QUERY
 
 object QueryJdbcStatementBuilder {
 
-	def apply(statementName: Expression[String],statement: String) = new QueryJdbcStatementBuilder(JdbcAttributes(statementName,statement,QUERY,Nil,None))
+	def apply(statementName: Expression[String],statement: String) = new QueryJdbcStatementBuilder(JdbcAttributes(statementName,statement,QUERY,Nil))
 }
 
 class QueryJdbcStatementBuilder(jdbcAttributes: JdbcAttributes) extends AbstractJdbcStatementBuilder[QueryJdbcStatementBuilder](jdbcAttributes) {

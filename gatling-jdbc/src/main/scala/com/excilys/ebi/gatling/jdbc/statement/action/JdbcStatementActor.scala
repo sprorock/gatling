@@ -30,14 +30,13 @@ object ExecuteStatement
 
 object JdbcStatementActor {
 
-	def apply(statementName: String,bundle: StatementBundle, isolationLevel: Option[Int],session: Session,next: ActorRef) =
-		new JdbcStatementActor(statementName,bundle,isolationLevel,session,next)
+	def apply(statementName: String,bundle: StatementBundle,session: Session,next: ActorRef) =
+		new JdbcStatementActor(statementName,bundle,session,next)
 }
 
 class JdbcStatementActor(
 	statementName: String,
 	bundle: StatementBundle,
-	isolationLevel: Option[Int],
 	session: Session,
 	next: ActorRef) extends JdbcActor(session,next) {
 
@@ -55,7 +54,7 @@ class JdbcStatementActor(
 		try {
 			executionStartDate = nowMillis
 			// Fetch connection
-			connection = setupConnection(isolationLevel)
+			connection = setupConnection(None)
 			resetTimeout
 			// Execute statement
 			statement = bundle.buildStatement(connection)

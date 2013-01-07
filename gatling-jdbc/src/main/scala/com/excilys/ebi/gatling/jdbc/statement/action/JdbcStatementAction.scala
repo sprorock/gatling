@@ -25,11 +25,10 @@ import scalaz._
 
 object JdbcStatementAction {
 
-	def apply(statementBuilder: AbstractJdbcStatementBuilder[_],isolationLevel: Option[Int],next: ActorRef) =
-		new JdbcStatementAction(statementBuilder,isolationLevel,next)
+	def apply(statementBuilder: AbstractJdbcStatementBuilder[_],next: ActorRef) = new JdbcStatementAction(statementBuilder,next)
 }
 
-class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],isolationLevel: Option[Int],val next: ActorRef) extends Action with Bypass {
+class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],val next: ActorRef) extends Action with Bypass {
 
 	/**
 	 * Core method executed when the Action received a Session message
@@ -46,7 +45,7 @@ class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],isol
 		execution match {
 			case Success((statementName,paramsList)) =>
 				val bundle = StatementBundle(statementBuilder,paramsList)
-				val jdbcActor = context.actorOf(Props(JdbcStatementActor(statementName,bundle,isolationLevel,session,next)))
+				val jdbcActor = context.actorOf(Props(JdbcStatementActor(statementName,bundle,session,next)))
 				jdbcActor ! ExecuteStatement
 
 			case Failure(message) =>

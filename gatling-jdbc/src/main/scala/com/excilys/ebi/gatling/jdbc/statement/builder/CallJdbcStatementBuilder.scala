@@ -20,7 +20,7 @@ import com.excilys.ebi.gatling.jdbc.statement.CALL
 
 object CallJdbcStatementBuilder {
 
-	def apply(statementName: Expression[String],statement: String) = new CallJdbcStatementBuilder(JdbcAttributes(statementName,statement,CALL,Nil,None))
+	def apply(statementName: Expression[String],statement: String) = new CallJdbcStatementBuilder(JdbcAttributes(statementName,statement,CALL,Nil))
 }
 
 class CallJdbcStatementBuilder(jdbcAttributes: JdbcAttributes) extends AbstractJdbcStatementBuilder[CallJdbcStatementBuilder](jdbcAttributes) {

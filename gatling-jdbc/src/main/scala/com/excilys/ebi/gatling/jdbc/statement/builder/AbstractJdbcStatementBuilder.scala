@@ -29,8 +29,7 @@ case class JdbcAttributes(
 	statementName: Expression[String],
 	statement: String,
 	statementType: StatementType,
-	params: List[Expression[Any]],
-	isolationLevel: Option[Int])
+	params: List[Expression[Any]])
 
 abstract class AbstractJdbcStatementBuilder[B <: AbstractJdbcStatementBuilder[B]](jdbcAttributes: JdbcAttributes) extends Logging {
 
@@ -38,15 +37,7 @@ abstract class AbstractJdbcStatementBuilder[B <: AbstractJdbcStatementBuilder[B]
 
 	def bind(value: Expression[Any]) = newInstance(jdbcAttributes.copy(params = value :: jdbcAttributes.params))
 
-	def readCommitted = newInstance(jdbcAttributes.copy(isolationLevel = Some(Connection.TRANSACTION_READ_COMMITTED)))
-
-	def readUncommitted = newInstance(jdbcAttributes.copy(isolationLevel = Some(Connection.TRANSACTION_READ_UNCOMMITTED)))
-
-	def repeatableRead = newInstance(jdbcAttributes.copy(isolationLevel = Some(Connection.TRANSACTION_REPEATABLE_READ)))
-
-	def serializable = newInstance(jdbcAttributes.copy(isolationLevel = Some(Connection.TRANSACTION_SERIALIZABLE)))
-
-	private[gatling] def toActionBuilder = JdbcStatementActionBuilder(this, jdbcAttributes.isolationLevel)
+	private[gatling] def toActionBuilder = JdbcStatementActionBuilder(this)
 
 	private[jdbc] def statementName = jdbcAttributes.statementName
 
