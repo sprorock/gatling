@@ -15,7 +15,6 @@
  */
 package com.excilys.ebi.gatling.jdbc.statement.action
 
-import com.excilys.ebi.gatling.core.action.{Action, Bypass}
 import com.excilys.ebi.gatling.core.session.{Expression, Session}
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
 import com.excilys.ebi.gatling.jdbc.util.StatementBundle
@@ -25,10 +24,10 @@ import scalaz._
 
 object JdbcStatementAction {
 
-	def apply(statementBuilder: AbstractJdbcStatementBuilder[_],next: ActorRef) = new JdbcStatementAction(statementBuilder,next)
+	def apply(builder: AbstractJdbcStatementBuilder[_],next: ActorRef) = new JdbcStatementAction(builder,next)
 }
 
-class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],val next: ActorRef) extends Action with Bypass {
+class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],val next: ActorRef) extends JdbcAction {
 
 	/**
 	 * Core method executed when the Action received a Session message
@@ -37,12 +36,7 @@ class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],val 
 	 * @return Nothing
 	 */
 	def execute(session: Session) {
-
-		val execution = for {
-			statementName <- statementBuilder.statementName(session)
-			paramsList <- statementBuilder.resolveParams(session)
-		} yield (statementName, paramsList)
-		execution match {
+		resolveQuery(statementBuilder,session) match {
 			case Success((statementName,paramsList)) =>
 				val bundle = StatementBundle(statementBuilder,paramsList)
 				val jdbcActor = context.actorOf(Props(JdbcStatementActor(statementName,bundle,session,next)))

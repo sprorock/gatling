@@ -25,18 +25,18 @@ import akka.actor.{ ActorRef, Props }
 
 object JdbcStatementActionBuilder {
 
-	def apply(statementBuilder: AbstractJdbcStatementBuilder[_])  = new JdbcStatementActionBuilder(statementBuilder,null)
+	def apply(builder: AbstractJdbcStatementBuilder[_])  = new JdbcStatementActionBuilder(builder,null)
 }
-class JdbcStatementActionBuilder(statementBuilder: AbstractJdbcStatementBuilder[_], next: ActorRef) extends ActionBuilder {
+class JdbcStatementActionBuilder(builder: AbstractJdbcStatementBuilder[_], next: ActorRef) extends ActionBuilder {
 	/**
 	 * @param next the Action that will be chained with the Action build by this builder
 	 * @return a new builder instance, with next set
 	 */
-	private[gatling] def withNext(next: ActorRef) = new JdbcStatementActionBuilder(statementBuilder,next)
+	private[gatling] def withNext(next: ActorRef) = new JdbcStatementActionBuilder(builder,next)
 
 	/**
 	 * @param protocolConfigurationRegistry
 	 * @return the built Action
 	 */
-	private[gatling] def build(protocolConfigurationRegistry: ProtocolConfigurationRegistry) = system.actorOf(Props(JdbcStatementAction(statementBuilder,next)))
+	private[gatling] def build(protocolConfigurationRegistry: ProtocolConfigurationRegistry) = system.actorOf(Props(JdbcStatementAction(builder,next)))
 }
