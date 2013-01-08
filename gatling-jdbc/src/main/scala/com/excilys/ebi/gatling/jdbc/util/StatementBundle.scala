@@ -20,10 +20,10 @@ import java.sql.Connection
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
 
 object StatementBundle {
-	def apply(builder : AbstractJdbcStatementBuilder[_],params: List[Any]) = new StatementBundle(builder,params)
+	def apply(name: String,builder : AbstractJdbcStatementBuilder[_],params: List[Any]) = new StatementBundle(name,builder,params)
 }
 
-class StatementBundle(builder: AbstractJdbcStatementBuilder[_],params: List[Any]) {
+class StatementBundle(val name : String,builder: AbstractJdbcStatementBuilder[_],params: List[Any]) {
 
 	def buildStatement(connection: Connection) = {
 		val statement = builder.build(connection)
