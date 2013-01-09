@@ -16,67 +16,74 @@
 package com.excilys.ebi.gatling.jdbc.statement.action
 
 import java.lang.System.nanoTime
-import java.sql.{Connection, PreparedStatement, SQLException}
+
+import java.sql.{ Connection, PreparedStatement, SQLException }
+
+import scala.collection.mutable
 
 import com.excilys.ebi.gatling.core.result.message.{ KO, OK }
 import com.excilys.ebi.gatling.core.session.Session
 import com.excilys.ebi.gatling.core.util.TimeHelper.{ computeTimeMillisFromNanos, nowMillis }
-
-import akka.actor.{ ActorRef, ReceiveTimeout }
 import com.excilys.ebi.gatling.jdbc.util.StatementBundle
 
+import akka.actor.ActorRef
 
-object JdbcStatementActor {
 
-	def apply(bundle: StatementBundle,session: Session,next: ActorRef) =
-		new JdbcStatementActor(bundle,session,next)
+object JdbcTransactionActor {
+	def apply(bundles: Seq[StatementBundle],isolationLevel: Option[Int],session: Session,next: ActorRef) = new JdbcTransactionActor(bundles,isolationLevel,session,next)
 }
+class JdbcTransactionActor(bundles: Seq[StatementBundle],isolationLevel: Option[Int],session: Session,next: ActorRef) extends JdbcActor(session,next) {
 
-class JdbcStatementActor(bundle: StatementBundle,session: Session,next: ActorRef) extends JdbcActor(session,next) {
-
-	currentStatementName = bundle.name
-
-//	def receive = {
-//		case Execute => execute
-//		case ReceiveTimeout =>
-//			logCurrentStatement(KO,Some("JdbcHandlerActor timed out"))
-//			executeNext(session.setFailed)
-//	}
+	var statementsProcessed = 0
 
 	def onTimeout {
-		logCurrentStatement(KO,Some("JdbcStatementActor timed out"))
+		logCurrentStatement(KO,Some("JdbcTransactionActor timed out"))
+		statementsProcessed += 1
+		failRemainingStatements
 		executeNext(session.setFailed)
 	}
 
-	def onExecute = {
-
-		var statement: PreparedStatement = null
+	def onExecute {
+		val statements = mutable.ListBuffer.empty[PreparedStatement]
 		var connection: Connection = null
-		try {
-			executionStartDate = nowMillis
-			// Fetch connection
-			connection = setupConnection(None)
-			resetTimeout
-			// Execute statement
-			statement = bundle.buildStatement(connection)
+
+		def executeSingleStatement(bundle: StatementBundle) {
+			currentStatementName = bundle.name
+			statementsProcessed += 1
+			val statement = bundle.buildStatement(connection)
+			statements += statement
 			statementExecutionStartDate = computeTimeMillisFromNanos(nanoTime)
 			val hasResultSet = statement.execute
 			statementExecutionEndDate = computeTimeMillisFromNanos(nanoTime)
 			resetTimeout
-			// Process result set
 			if (hasResultSet) processResultSet(statement)
 			executionEndDate = computeTimeMillisFromNanos(nanoTime)
+			resetTimeout
 			logCurrentStatement(OK)
+		}
+
+		try {
+			executionStartDate = nowMillis
+			// Fetch connection
+			connection = setupConnection(isolationLevel)
+			resetTimeout
+			bundles.foreach(executeSingleStatement(_))
 			next ! session
 			context.stop(self)
 		} catch {
-			case e : SQLException =>
+			case e: SQLException =>
 				logCurrentStatement(KO,Some(e.getMessage))
+				failRemainingStatements
 				executeNext(session.setFailed)
 		} finally {
-			closeStatement(statement)
+			statements.foreach(closeStatement(_))
 			closeConnection(connection)
 		}
+
 	}
 
+	def failRemainingStatements = {
+		val remainingStatements = bundles.drop(statementsProcessed)
+		remainingStatements.foreach(bundle => logStatement(bundle.name,KO,Some("Transaction Failed")))
+	}
 }

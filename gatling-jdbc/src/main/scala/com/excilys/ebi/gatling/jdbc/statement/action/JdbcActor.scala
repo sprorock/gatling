@@ -29,8 +29,11 @@ import com.excilys.ebi.gatling.core.util.TimeHelper.nowMillis
 import com.excilys.ebi.gatling.jdbc.util.ConnectionFactory
 import com.excilys.ebi.gatling.jdbc.util.RowIterator.ResultSet2RowIterator
 
-import akka.actor.ActorRef
+import akka.actor.{ ActorRef, ReceiveTimeout }
 import akka.util.duration.intToDurationInt
+
+// Message to start execution of query by the actor
+object Execute
 
 abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 
@@ -41,13 +44,20 @@ abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 	var statementExecutionEndDate = 0L
 	var executionEndDate = 0L
 
+	def receive = {
+		case Execute => onExecute
+		case ReceiveTimeout => onTimeout
+	}
+
 	def setupConnection(isolationLevel: Option[Int]) = {
 		val connection = ConnectionFactory.getConnection
 		if (isolationLevel.isDefined) connection.setTransactionIsolation(isolationLevel.get)
 		connection
 	}
 
-	def execute
+	def onExecute
+
+	def onTimeout
 
 	def processResultSet(statement: PreparedStatement) = use(statement.getResultSet) { _.size}
 
@@ -59,7 +69,9 @@ abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 
 	def resetTimeout = context.setReceiveTimeout(configuration.jdbc.statementTimeoutInMs milliseconds)
 
-	def logStatement(status: RequestStatus,errorMessage: Option[String] = None) {
+	def logCurrentStatement(status: RequestStatus,errorMessage: Option[String] = None) = logStatement(currentStatementName,status,errorMessage)
+
+	def logStatement(statementName: String,status: RequestStatus,errorMessage: Option[String] = None) {
 		// time measurement is imprecise due to multi-core nature
 		// ensure statement execution doesn't start before starting
 		statementExecutionStartDate = max(statementExecutionStartDate,executionStartDate)
@@ -70,7 +82,7 @@ abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 		// Log request
 		if (status == KO)
 			debug("Statement failed : " + errorMessage.getOrElse(""))
-		DataWriter.logRequest(session.scenarioName,session.userId,currentStatementName,executionStartDate,
+		DataWriter.logRequest(session.scenarioName,session.userId,statementName,executionStartDate,
 			statementExecutionStartDate,statementExecutionEndDate,executionEndDate,status,errorMessage)
 	}
 }

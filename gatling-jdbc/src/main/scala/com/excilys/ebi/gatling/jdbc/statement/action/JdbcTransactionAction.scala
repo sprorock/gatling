@@ -15,19 +15,21 @@
  */
 package com.excilys.ebi.gatling.jdbc.statement.action
 
-import com.excilys.ebi.gatling.core.session.{Expression, Session}
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
+
+import com.excilys.ebi.gatling.core.session.Session
 import com.excilys.ebi.gatling.jdbc.util.StatementBundle
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ ActorRef, Props }
+
 import scalaz._
+import Scalaz._
 
-object JdbcStatementAction {
-
-	def apply(builder: AbstractJdbcStatementBuilder[_],next: ActorRef) = new JdbcStatementAction(builder,next)
+object JdbcTransactionAction {
+	def apply(builders: List[AbstractJdbcStatementBuilder[_]],isolationLevel: Option[Int],next: ActorRef) = new JdbcTransactionAction(builders,isolationLevel,next)
 }
 
-class JdbcStatementAction(builder: AbstractJdbcStatementBuilder[_],val next: ActorRef) extends JdbcAction {
+class JdbcTransactionAction(builders: List[AbstractJdbcStatementBuilder[_]],isolationLevel: Option[Int],val next: ActorRef) extends JdbcAction {
 
 	/**
 	 * Core method executed when the Action received a Session message
@@ -36,16 +38,19 @@ class JdbcStatementAction(builder: AbstractJdbcStatementBuilder[_],val next: Act
 	 * @return Nothing
 	 */
 	def execute(session: Session) {
-		resolveQuery(builder,session) match {
-			case Success((statementName,paramsList)) =>
-				val bundle = StatementBundle(statementName,builder,paramsList)
-				val jdbcActor = context.actorOf(Props(JdbcStatementActor(bundle,session,next)))
+		def buildBundle(bundleData: (AbstractJdbcStatementBuilder[_],(String,List[Any]))) = {
+			val nameAndParams = bundleData._2
+			StatementBundle(nameAndParams._1,bundleData._1,nameAndParams._2)
+		}
+		val resolvedQueries = builders.map(resolveQuery(_,session)).sequence[({ type l[a] = Validation[String, a] })#l, (String,List[Any])]
+		resolvedQueries match {
+			case Success(resolvedNamesAndParams) =>
+				val bundles = builders.zip(resolvedNamesAndParams).map(buildBundle(_))
+				val jdbcActor = context.actorOf(Props(JdbcTransactionActor(bundles,isolationLevel,session,next)))
 				jdbcActor ! Execute
-
 			case Failure(message) =>
 				error(message)
 				next ! session
 		}
-
 	}
 }

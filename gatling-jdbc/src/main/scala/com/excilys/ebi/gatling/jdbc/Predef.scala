@@ -29,7 +29,7 @@ object Predef {
 
 	def jdbcConfig = JdbcProtocolConfigurationBuilder.jdbcConfig
 	def sql(statementName: Expression[String]) = JdbcStatementBaseBuilder.sql(statementName)
-	def transaction(queries: AbstractJdbcStatementBuilder[_]*): ActionBuilder = JdbcTransactionActionBuilder(queries)
+	def transaction(queries: AbstractJdbcStatementBuilder[_]*) = JdbcTransactionActionBuilder(queries)
 
 	def jdbcFeeder(url: String, username: String, password: String, sql: String) = JdbcFeederSource(url, username, password, sql)
 }
