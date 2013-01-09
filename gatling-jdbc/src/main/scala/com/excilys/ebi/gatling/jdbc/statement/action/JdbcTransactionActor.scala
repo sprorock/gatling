@@ -66,12 +66,19 @@ class JdbcTransactionActor(bundles: Seq[StatementBundle],isolationLevel: Option[
 			executionStartDate = nowMillis
 			// Fetch connection
 			connection = setupConnection(isolationLevel)
+			connection.setAutoCommit(false)
 			resetTimeout
 			bundles.foreach(executeSingleStatement(_))
+			connection.commit
 			next ! session
 			context.stop(self)
 		} catch {
 			case e: SQLException =>
+				try {
+					connection.rollback
+				} catch {
+					case e: Exception => // shut up
+				}
 				logCurrentStatement(KO,Some(e.getMessage))
 				failRemainingStatements
 				executeNext(session.setFailed)
