@@ -30,7 +30,7 @@ import com.excilys.ebi.gatling.jdbc.util.ConnectionFactory
 import com.excilys.ebi.gatling.jdbc.util.RowIterator.ResultSet2RowIterator
 
 import akka.actor.{ ActorRef, ReceiveTimeout }
-import akka.util.duration.intToDurationInt
+import scala.concurrent.duration.DurationInt
 
 // Message to start execution of query by the actor
 object Execute
