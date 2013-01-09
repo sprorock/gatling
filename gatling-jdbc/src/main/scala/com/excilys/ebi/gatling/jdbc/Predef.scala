@@ -20,7 +20,7 @@ import com.excilys.ebi.gatling.jdbc.config.JdbcProtocolConfigurationBuilder
 import com.excilys.ebi.gatling.jdbc.feeder.database.JdbcFeederSource
 import com.excilys.ebi.gatling.jdbc.statement.builder.{ AbstractJdbcStatementBuilder, JdbcStatementBaseBuilder }
 import com.excilys.ebi.gatling.core.action.builder.ActionBuilder
-import statement.action.JdbcTransactionActionBuilder
+import statement.action.builder.JdbcTransactionActionBuilder
 
 object Predef {
 

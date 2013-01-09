@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.excilys.ebi.gatling.jdbc.statement.action
+package com.excilys.ebi.gatling.jdbc.statement.action.builder
 
-import com.excilys.ebi.gatling.core.action.system
+import akka.actor.{Props, ActorRef}
 import com.excilys.ebi.gatling.core.action.builder.ActionBuilder
+import com.excilys.ebi.gatling.core.action.system
 import com.excilys.ebi.gatling.core.config.ProtocolConfigurationRegistry
 import com.excilys.ebi.gatling.core.session.Expression
+import com.excilys.ebi.gatling.jdbc.statement.action.JdbcStatementAction
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
 
-import akka.actor.{ ActorRef, Props }
 
 object JdbcStatementActionBuilder {
 

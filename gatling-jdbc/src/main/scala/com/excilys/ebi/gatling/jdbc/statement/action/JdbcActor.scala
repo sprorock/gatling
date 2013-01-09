@@ -34,11 +34,12 @@ import akka.util.duration.intToDurationInt
 
 abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 
+	var currentStatementName: String = _
+
 	var executionStartDate = 0L
 	var statementExecutionStartDate = 0L
 	var statementExecutionEndDate = 0L
 	var executionEndDate = 0L
-
 
 	def setupConnection(isolationLevel: Option[Int]) = {
 		val connection = ConnectionFactory.getConnection
@@ -58,7 +59,7 @@ abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 
 	def resetTimeout = context.setReceiveTimeout(configuration.jdbc.statementTimeoutInMs milliseconds)
 
-	def logStatement(statementName: String,status: RequestStatus,errorMessage: Option[String] = None) {
+	def logStatement(status: RequestStatus,errorMessage: Option[String] = None) {
 		// time measurement is imprecise due to multi-core nature
 		// ensure statement execution doesn't start before starting
 		statementExecutionStartDate = max(statementExecutionStartDate,executionStartDate)
@@ -69,7 +70,7 @@ abstract class JdbcActor(session: Session,next: ActorRef) extends BaseActor {
 		// Log request
 		if (status == KO)
 			debug("Statement failed : " + errorMessage.getOrElse(""))
-		DataWriter.logRequest(session.scenarioName,session.userId,statementName,executionStartDate,
+		DataWriter.logRequest(session.scenarioName,session.userId,currentStatementName,executionStartDate,
 			statementExecutionStartDate,statementExecutionEndDate,executionEndDate,status,errorMessage)
 	}
 }

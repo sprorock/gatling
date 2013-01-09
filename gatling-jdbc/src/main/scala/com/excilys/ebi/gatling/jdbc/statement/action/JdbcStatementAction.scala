@@ -27,7 +27,7 @@ object JdbcStatementAction {
 	def apply(builder: AbstractJdbcStatementBuilder[_],next: ActorRef) = new JdbcStatementAction(builder,next)
 }
 
-class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],val next: ActorRef) extends JdbcAction {
+class JdbcStatementAction(builder: AbstractJdbcStatementBuilder[_],val next: ActorRef) extends JdbcAction {
 
 	/**
 	 * Core method executed when the Action received a Session message
@@ -36,10 +36,10 @@ class JdbcStatementAction(statementBuilder: AbstractJdbcStatementBuilder[_],val 
 	 * @return Nothing
 	 */
 	def execute(session: Session) {
-		resolveQuery(statementBuilder,session) match {
+		resolveQuery(builder,session) match {
 			case Success((statementName,paramsList)) =>
-				val bundle = StatementBundle(statementBuilder,paramsList)
-				val jdbcActor = context.actorOf(Props(JdbcStatementActor(statementName,bundle,session,next)))
+				val bundle = StatementBundle(statementName,builder,paramsList)
+				val jdbcActor = context.actorOf(Props(JdbcStatementActor(bundle,session,next)))
 				jdbcActor ! ExecuteStatement
 
 			case Failure(message) =>

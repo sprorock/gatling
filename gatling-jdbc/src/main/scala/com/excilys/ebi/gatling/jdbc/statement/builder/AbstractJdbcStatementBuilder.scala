@@ -19,11 +19,11 @@ import java.sql.Connection
 
 import com.excilys.ebi.gatling.core.session.{ Expression, Session }
 import com.excilys.ebi.gatling.jdbc.statement.{ CALL, QUERY, StatementType }
-import com.excilys.ebi.gatling.jdbc.statement.action.JdbcStatementActionBuilder
 
 import grizzled.slf4j.Logging
 import scalaz._
 import Scalaz._
+import com.excilys.ebi.gatling.jdbc.statement.action.builder.JdbcStatementActionBuilder
 
 case class JdbcAttributes(
 	statementName: Expression[String],

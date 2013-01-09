@@ -30,20 +30,18 @@ object ExecuteStatement
 
 object JdbcStatementActor {
 
-	def apply(statementName: String,bundle: StatementBundle,session: Session,next: ActorRef) =
-		new JdbcStatementActor(statementName,bundle,session,next)
+	def apply(bundle: StatementBundle,session: Session,next: ActorRef) =
+		new JdbcStatementActor(bundle,session,next)
 }
 
-class JdbcStatementActor(
-	statementName: String,
-	bundle: StatementBundle,
-	session: Session,
-	next: ActorRef) extends JdbcActor(session,next) {
+class JdbcStatementActor(bundle: StatementBundle,session: Session,next: ActorRef) extends JdbcActor(session,next) {
+
+	currentStatementName = bundle.name
 
 	def receive = {
 		case ExecuteStatement => execute
 		case ReceiveTimeout =>
-			logStatement(statementName,KO,Some("JdbcHandlerActor timed out"))
+			logStatement(KO,Some("JdbcHandlerActor timed out"))
 			executeNext(session.setFailed)
 	}
 
@@ -65,13 +63,13 @@ class JdbcStatementActor(
 			// Process result set
 			if (hasResultSet) processResultSet(statement)
 			executionEndDate = computeTimeMillisFromNanos(nanoTime)
-			logStatement(statementName,OK)
+			logStatement(OK)
 			next ! session
 			context.stop(self)
 
 		} catch {
 			case e : SQLException =>
-				logStatement(statementName,KO,Some(e.getMessage))
+				logStatement(KO,Some(e.getMessage))
 				executeNext(session.setFailed)
 		} finally {
 			closeStatement(statement)
