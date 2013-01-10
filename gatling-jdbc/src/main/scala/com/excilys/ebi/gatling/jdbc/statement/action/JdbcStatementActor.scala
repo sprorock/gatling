@@ -21,10 +21,9 @@ import java.sql.{Connection, PreparedStatement, SQLException}
 import com.excilys.ebi.gatling.core.result.message.{ KO, OK }
 import com.excilys.ebi.gatling.core.session.Session
 import com.excilys.ebi.gatling.core.util.TimeHelper.{ computeTimeMillisFromNanos, nowMillis }
-
-import akka.actor.{ ActorRef, ReceiveTimeout }
 import com.excilys.ebi.gatling.jdbc.util.StatementBundle
 
+import akka.actor.ActorRef
 
 object JdbcStatementActor {
 
@@ -35,13 +34,6 @@ object JdbcStatementActor {
 class JdbcStatementActor(bundle: StatementBundle,session: Session,next: ActorRef) extends JdbcActor(session,next) {
 
 	currentStatementName = bundle.name
-
-//	def receive = {
-//		case Execute => execute
-//		case ReceiveTimeout =>
-//			logCurrentStatement(KO,Some("JdbcHandlerActor timed out"))
-//			executeNext(session.setFailed)
-//	}
 
 	def onTimeout {
 		logCurrentStatement(KO,Some("JdbcStatementActor timed out"))

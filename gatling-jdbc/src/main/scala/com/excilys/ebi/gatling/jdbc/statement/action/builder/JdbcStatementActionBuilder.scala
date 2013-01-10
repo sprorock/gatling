@@ -15,11 +15,10 @@
  */
 package com.excilys.ebi.gatling.jdbc.statement.action.builder
 
-import akka.actor.{Props, ActorRef}
+import akka.actor.{ ActorRef, Props }
 import com.excilys.ebi.gatling.core.action.builder.ActionBuilder
 import com.excilys.ebi.gatling.core.action.system
 import com.excilys.ebi.gatling.core.config.ProtocolConfigurationRegistry
-import com.excilys.ebi.gatling.core.session.Expression
 import com.excilys.ebi.gatling.jdbc.statement.action.JdbcStatementAction
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
 

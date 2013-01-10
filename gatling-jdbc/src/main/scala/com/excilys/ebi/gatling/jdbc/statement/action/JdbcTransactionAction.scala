@@ -15,9 +15,8 @@
  */
 package com.excilys.ebi.gatling.jdbc.statement.action
 
-import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
-
 import com.excilys.ebi.gatling.core.session.Session
+import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
 import com.excilys.ebi.gatling.jdbc.util.StatementBundle
 
 import akka.actor.{ ActorRef, Props }

@@ -15,12 +15,12 @@
  */
 package com.excilys.ebi.gatling.jdbc.statement.action
 
-import com.excilys.ebi.gatling.core.session.{Expression, Session}
+import com.excilys.ebi.gatling.core.session.Session
 import com.excilys.ebi.gatling.jdbc.statement.builder.AbstractJdbcStatementBuilder
 import com.excilys.ebi.gatling.jdbc.util.StatementBundle
 
-import akka.actor.{Props, ActorRef}
-import scalaz._
+import akka.actor.{ Props, ActorRef }
+import scalaz.{ Failure, Success }
 
 object JdbcStatementAction {
 
