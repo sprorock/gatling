@@ -83,6 +83,7 @@ class JdbcTransactionActor(bundles: Seq[StatementBundle],isolationLevel: Option[
 				failRemainingStatements
 				executeNext(session.setFailed)
 		} finally {
+			connection.setAutoCommit(true)
 			statements.foreach(closeStatement(_))
 			closeConnection(connection)
 		}
