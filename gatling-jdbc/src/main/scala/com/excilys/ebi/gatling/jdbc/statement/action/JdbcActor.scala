@@ -27,7 +27,7 @@ import com.excilys.ebi.gatling.core.session.Session
 import com.excilys.ebi.gatling.core.util.IOHelper.use
 import com.excilys.ebi.gatling.core.util.TimeHelper.nowMillis
 import com.excilys.ebi.gatling.jdbc.util.ConnectionFactory
-import com.excilys.ebi.gatling.jdbc.util.RowIterator.ResultSet2RowIterator
+import com.excilys.ebi.gatling.jdbc.util.RowIterator
 
 import akka.actor.{ ActorRef, ReceiveTimeout }
 import scala.concurrent.duration.DurationInt

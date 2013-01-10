@@ -19,7 +19,7 @@ import java.sql.DriverManager
 import java.sql.ResultSet.{ CONCUR_READ_ONLY, TYPE_FORWARD_ONLY }
 
 import com.excilys.ebi.gatling.core.util.IOHelper.use
-import com.excilys.ebi.gatling.jdbc.util.RowIterator.ResultSet2RowIterator
+import com.excilys.ebi.gatling.jdbc.util.RowIterator
 
 object JdbcFeederSource {
 

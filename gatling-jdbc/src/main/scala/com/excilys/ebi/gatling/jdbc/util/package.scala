@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.excilys.ebi.gatling.jdbc.util
+package com.excilys.ebi.gatling.jdbc
 
 import java.sql.ResultSet
 
-object RowIterator {
+package object util {
 
-	implicit def ResultSet2RowIterator(resultSet: ResultSet) = new RowIterator(resultSet)
+	implicit class RowIterator(resultSet: ResultSet) extends Iterator[Array[AnyRef]] {
 
-}
+		val columnCount = resultSet.getMetaData.getColumnCount
 
-// TODO : use an implicit class after upgrade to Scala 2.10
-class RowIterator(resultSet: ResultSet) extends Iterator[Array[AnyRef]] {
+		def hasNext = resultSet.next
 
-	val columnCount = resultSet.getMetaData.getColumnCount
-
-	def hasNext = resultSet.next
-
-	def next = (for (i <- 1 to columnCount) yield (resultSet.getObject(i))).toArray
+		def next = (for (i <- 1 to columnCount) yield (resultSet.getObject(i))).toArray
+	}
 }
